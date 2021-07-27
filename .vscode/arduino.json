@@ -1,0 +1,5 @@
+{
+    "sketch": "i2cintercept.ino",
+    "board": "arduino:avr:leonardo",
+    "port": "COM14"
+}

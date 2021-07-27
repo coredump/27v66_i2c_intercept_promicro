@@ -1,0 +1,1 @@
+void slaveReceive(int n);

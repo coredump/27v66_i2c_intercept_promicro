@@ -10,7 +10,7 @@
 
 #define SCL_PIN 4 // PB4 - Pin 8 on a Pro Micro
 #define SCL_PORT PORTB
-#define SDA_PIN 5  // PB5 - Pin 9 on a Pro Micro
+#define SDA_PIN 5 // PB5 - Pin 9 on a Pro Micro
 #define SDA_PORT PORTB
 #define I2C_PULLUP 0
 #define I2C_FASTMODE 1
@@ -33,74 +33,119 @@
 void writeRequest(int);
 void readRequest();
 
-void setup() {
+uint8_t r[2] = {0, 0};
+unsigned long start = millis();
+bool iicinit = false;
+bool masked = false;
+
+void setup()
+{
   Serial.begin(115200);
   Serial.print("Sony Jungle I2C Bridge\n");
-  bool iicinit = i2c_init();
+  iicinit = i2c_init();
   Wire.begin(JUNGLE_ADDR);
   Wire.onReceive(writeRequest);
   Wire.onRequest(readRequest);
-  if(!iicinit) Serial.println("I2C init failed");
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  if (!iicinit)
+  {
+    Serial.println("I2C init failed");
+  }
 }
 
-void writeRegister(const uint8_t reg, const uint8_t val) {
-  i2c_start((JUNGLE_ADDR<<1)|I2C_WRITE);
+void writeRegister(const uint8_t reg, const uint8_t val)
+{
+  i2c_start((JUNGLE_ADDR << 1) | I2C_WRITE);
   i2c_write(reg);
   i2c_write(val);
-  i2c_stop(); 
+  i2c_stop();
 }
 
-void writeRequest(int byteCount) {
-  if(byteCount > 2) {
+void writeRequest(int byteCount)
+{
+  if (byteCount > 2)
+  {
     uint8_t reg = Wire.read();
     uint8_t bc = 1;
-    i2c_start((JUNGLE_ADDR<<1)|I2C_WRITE);
+    i2c_start((JUNGLE_ADDR << 1) | I2C_WRITE);
     i2c_write(reg);
-    do {
+    do
+    {
       uint8_t val = Wire.read();
-      switch(reg) {
-        case REG_RGB:
-          // mask the value to make the last bit 0 without changing anything else
-          val = (val & 0b11111110);
+      switch (reg)
+      {
+      case REG_RGB:
+        // mask the value to make the last bit 0 without changing anything else
+        val = (val & 0b11111110);
+        masked = true;
         break;
-        default:
+      default:
         break;
       }
       i2c_write(val);
       ++bc;
       ++reg;
-    } while(bc < byteCount);
+    } while (bc < byteCount);
     i2c_stop();
-  } else {
+  }
+  else
+  {
     uint8_t reg = Wire.read();
     uint8_t val = Wire.read();
-    switch(reg) {
-      case REG_RGB:
-        writeRegister(reg,(val & 0b11111110));
+    switch (reg)
+    {
+    case REG_RGB:
+      writeRegister(reg, (val & 0b11111110));
+      masked = true;
       break;
-      default:
-        writeRegister(reg,val);
+    default:
+      writeRegister(reg, val);
       break;
     }
   }
 }
 
-uint8_t r[2] = {0, 0};
-
-void readRequest() {
-  Wire.write(r,2);
+void readRequest()
+{
+  Wire.write(r, 2);
 }
 
-void read() {
-  i2c_start((JUNGLE_ADDR<<1)|I2C_READ);
+void read()
+{
+  i2c_start((JUNGLE_ADDR << 1) | I2C_READ);
   r[0] = i2c_read(false); // read one byte
-  r[1] = i2c_read(true); // read one byte and send NAK to terminate
-  i2c_stop(); // send stop condition
+  r[1] = i2c_read(true);  // read one byte and send NAK to terminate
+  i2c_stop();             // send stop condition
 }
 
-void loop() {
+void loop()
+{
   noInterrupts();
   read();
   interrupts();
   delay(DELAY_MS);
+  if ((millis() - start) >= 1000)
+  {
+    Serial.println("Alive");
+    if (!iicinit)
+    {
+      Serial.println("IICinit failed!");
+    }
+    else
+    {
+      Serial.println("IICinit succeeded");
+    }
+
+    if (masked)
+    {
+      Serial.println("Masked is true");
+      masked = false;
+    } else
+    {
+      Serial.println("masked is false");
+    }
+    
+    start = millis();
+  }
 }

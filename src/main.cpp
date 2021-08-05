@@ -43,6 +43,7 @@ void setup()
   Serial.begin(115200);
   Serial.print("Sony Jungle I2C Bridge\n");
   iicinit = i2c_init();
+  Wire.setClock(100000);
   Wire.begin(JUNGLE_ADDR);
   Wire.onReceive(writeRequest);
   Wire.onRequest(readRequest);

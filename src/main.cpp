@@ -1,33 +1,35 @@
-/* This is HEAVILY based on the JVC mod made by Martin Hejnfelt 
-   and available here https://github.com/skumlos/tb1226en-i2c-bridge
-   Altered to be used on a Pro Micro and Platform.io stuff
-*/
-
 #include <Arduino.h>
-#include <Wire.h>
 #include <RingBufCPP.h>
 #include <singleLEDLibrary.h>
 
 #define DELAY_MS 100
 
-#define SCL_PIN 4 // PB4 - Pin 8 on a Pro Micro
+#define SLAVE_SCL_PORT PORTD
+#define SLAVE_SCL_PIN 1 // PD1 - Pin 2 on a Pro Micro
+#define SLAVE_SDA_PORT PORTD
+#define SLAVE_SDA_PIN 0 // PD0 - Pin 3 on a Pro Micro
+#define SCL_PIN 4       // PB4 - Pin 8 on a Pro Micro
 #define SCL_PORT PORTB
 #define SDA_PIN 5 // PB5 - Pin 9 on a Pro Micro
 #define SDA_PORT PORTB
-#define I2C_PULLUP 0
-#define I2C_FASTMODE 0
 
-#include <SoftI2CMaster.h>
+/* Port manipulation/setup stuff
+ */
+#define DA_CL_LOW 0b00  // Both low, unsure this is really needed
+#define DA_HIGH 0b01    // Only SDA is high
+#define CL_HIGH 0b10    // Only SCl is high
+#define DA_CL_HIGH 0b11 // Both are High
 
-// Address in the datasheet is said to be 0x88 for write
-// and 0x89 for read. That is somewhat of a "mistake" as
-// i2c uses 7 bit addressing and the least significant bit
-// is read (1) or write (0). Thus the address is shifted once
-// to the right to get the "real" address which is then 44h/68
+/* Address in the datasheet is said to be 0x88 for write
+ and 0x89 for read. That is somewhat of a "mistake" as
+ i2c uses 7 bit addressing and the least significant bit
+ is read (1) or write (0). Thus the address is shifted once
+ to the right to get the "real" address which is then 44h/68
+*/
 #define JUNGLE_ADDR (0x44)
 
 /* For the CXA2133S this seems to work
-   There are no datasheets for it, but the CXA2061S seems to be 
+   There are no datasheets for it, but the CXA2061S seems to be
    very close.
 */
 #define REG_RGB (0xA)
@@ -37,107 +39,108 @@
 #define MASK (0xfe)
 
 /* Theoretically this will be enough (famous last words) */
-#define BUFFER_SIZE (32)
+#define BUFFER_SIZE (64)
 
-void writeRequest(int);
-void readRequest();
+#define D_EVENT 0
+#define S_EVENT 1
+#define P_EVENT 2
+#define SR_EVENT 3
 
-RingBufCPP<int, BUFFER_SIZE> buf;
+typedef struct Event {
+  byte type;
+  byte data;
+} Event;
+
+volatile byte state = 0;
+
+RingBufCPP<Event, BUFFER_SIZE> buf;
 sllib led(LED_BUILTIN_RX);
 
-uint8_t r[2] = {0, 0};
-unsigned long start = millis();
-bool iicinit = false;
+int failPtrn1[] = {1000, 200, 500, 200};
+int failPtrn2[] = {1000, 200, 500, 200, 500, 200};
+int failPtrn3[] = {1000, 200, 500, 200, 500, 200, 500, 200};
 
-void setup()
-{
+long unsigned int start = millis();
+
+void handleCL();
+void handleDA();
+
+void setup() {
   Serial.begin(115200);
   Serial.print("Sony Jungle I2C Bridge\n");
   led.setBlinkSingle(1000);
 
-  iicinit = i2c_init();
-  Wire.setClock(100000);
-  Wire.onReceive(writeRequest);
-  Wire.onRequest(readRequest);
-  Wire.begin(JUNGLE_ADDR);
-  pinMode(LED_BUILTIN_RX, OUTPUT);
-
-  if (!iicinit)
-  {
-    Serial.println("I2C init failed");
-    int pattern[] = {1000, 200, 500, 200, 500, 200};
-    led.setPatternSingle(pattern, 6);
-  }
+  DDRD = DDRD | B11111100;
+  DDRB = DDRB | B11111111;
+  attachInterrupt(digitalPinToInterrupt(3), handleCL, RISING);
+  attachInterrupt(digitalPinToInterrupt(2), handleDA, CHANGE);
 }
 
-// void writeRegister(const uint8_t reg, const uint8_t val)
-// {
-//   i2c_start((JUNGLE_ADDR << 1) | I2C_WRITE);
-//   i2c_write(reg);
-//   i2c_write(val);
-//   i2c_stop();
-// }
+void loop() {
+  if (buf.numElements() > 0) {
+    Serial.println(buf.numElements());
+    Event e;
+    while (buf.pull(&e)) {
+      switch (e.type) {
+      case S_EVENT:
+        Serial.println("Start event");
+        break;
 
-void readRequest()
-{
-  Wire.write(r, 2);
-}
+      case P_EVENT:
+        Serial.println("Stop event");
+        break;
 
-void writeRequest(int byteCount)
-{
-  bool reg_found = false;
-  bool single_reg_found = false;
-  int c = 0;
-  int data = 0;
+      case D_EVENT:
+        Serial.println("Data event");
+        break;
 
-  while (Wire.available())
-  {
-    data = Wire.read();
-    if (byteCount > 2)
-    {
-      if (data == REG_INIT)
-      {
-        reg_found = true;
+      default:
+        Serial.println("No event");
+        break;
       }
-
-      if (reg_found && (c == 2))
-      {
-        data = data & MASK;
-      }
-      c++;
+      Serial.print("Data: ");
+      Serial.println(e.data);
     }
-    else if (byteCount == 2)
-    {
-      if (data == REG_RGB)
-      {
-        single_reg_found = true;
-      }
-
-      if (single_reg_found && Wire.available() == 0)
-      {
-        data = data & MASK;
-      }
-    }
-    buf.add(data);
-  }
-}
-
-void loop()
-{
-  int d;
-  if (buf.numElements() > 0)
-  {
-    if(!i2c_start(JUNGLE_ADDR << 1 | I2C_WRITE)) {
-      led.setBlinkSingle(100);
-    }
-    else {
-      led.setBlinkSingle(1000);
-    }
-    while (buf.pull(&d))
-    {
-      i2c_write(d);
-    }
-    i2c_stop();
   }
   led.update();
+}
+
+void handleCL() {
+  byte portState = (PIND & B00000011);
+  Event e;
+  switch (portState) {
+  case DA_CL_HIGH:
+    e = {.type = D_EVENT, .data = 1};
+    buf.add(e);
+    return;
+    break;
+  case CL_HIGH:
+    e = {.type = D_EVENT, .data = 0};
+    buf.add(e);
+    return;
+    break;
+
+  default:
+    break;
+  }
+}
+
+void handleDA() {
+  byte portState = (PIND & B00000011);
+  Event e;
+  switch (portState) {
+  case CL_HIGH:
+    e = {.type = S_EVENT, .data = 0};
+    buf.add(e);
+    return;
+    break;
+  case DA_CL_HIGH:
+    e = {.type = P_EVENT, .data = 0};
+    buf.add(e);
+    return;
+    break;
+
+  default:
+    break;
+  }
 }

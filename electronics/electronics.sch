@@ -6,8 +6,8 @@ encoding utf-8
 Sheet 1 1
 Title "KV-27V66 I2C RGB MOD"
 Date "2021-08-10"
-Rev ""
-Comp ""
+Rev "1"
+Comp "c6p.dev"
 Comment1 ""
 Comment2 ""
 Comment3 ""

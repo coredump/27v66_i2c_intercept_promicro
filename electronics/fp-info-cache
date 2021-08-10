@@ -1,4 +1,4 @@
-19219321173183945
+19222578431217804
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -83027,8 +83027,22 @@ varistor SIOV
 2
 2
 local
+c6p-dev
+Converted using: svg2mod -i '.\c6p-dev.svg' -o '.\i2cintercept\electronics\local.pretty\c6p-dev.kicad_mod' -f 0.5 -c -v --name c6p_logo -p 0.3
+svg2mod
+0
+0
+0
+local
 drawing
-Converted using: svg2mod -i '.\drawing.svg' -F Isonorm
+Converted using: svg2mod -i '.\drawing.svg' -o '.\i2cintercept\electronics\local.pretty\drawing.kicad_mod' -f 0.5
+svg2mod
+0
+0
+0
+local
+kv27v66mod
+Converted using: svg2mod -i '.\kv27v66mod.svg' -o '.\i2cintercept\electronics\local.pretty\kv27v66mod.kicad_mod' -f 0.15 -c -v --name kv_revision -p 1
 svg2mod
 0
 0

@@ -1,146 +1,130 @@
 #include <Arduino.h>
-#include <RingBufCPP.h>
+#include <Wire.h>
 #include <singleLEDLibrary.h>
 
-#define DELAY_MS 100
-
-#define SLAVE_SCL_PORT PORTD
-#define SLAVE_SCL_PIN 1 // PD1 - Pin 2 on a Pro Micro
-#define SLAVE_SDA_PORT PORTD
-#define SLAVE_SDA_PIN 0 // PD0 - Pin 3 on a Pro Micro
-#define SCL_PIN 4       // PB4 - Pin 8 on a Pro Micro
-#define SCL_PORT PORTB
-#define SDA_PIN 5 // PB5 - Pin 9 on a Pro Micro
-#define SDA_PORT PORTB
-
-/* Port manipulation/setup stuff
- */
-#define DA_CL_LOW 0b00  // Both low, unsure this is really needed
-#define DA_HIGH 0b01    // Only SDA is high
-#define CL_HIGH 0b10    // Only SCl is high
-#define DA_CL_HIGH 0b11 // Both are High
-
-/* Address in the datasheet is said to be 0x88 for write
- and 0x89 for read. That is somewhat of a "mistake" as
- i2c uses 7 bit addressing and the least significant bit
- is read (1) or write (0). Thus the address is shifted once
- to the right to get the "real" address which is then 44h/68
+/* We use this circular buffer to be able to have really fast i2c slave
+   handling functions (since they are actually interrupt handlers). That
+   way we can receive all data and add to the buffer and then deal with it
+   when the MCU isn't handling some other i2c data
 */
+#define CIRCULAR_BUFFER_INT_SAFE
+#include <CircularBuffer.h>
+
+#define SDA_PORT PORTB
+#define SDA_PIN 5 // Pin 9 on pro micro
+#define SCL_PORT PORTB
+#define SCL_PIN 4 // Pin 8 on pro micro
+#define I2C_PULLUP 0
+#define I2C_FASTMODE 0
+#include <SoftI2CMaster.h>
+
 #define JUNGLE_ADDR (0x44)
 
-/* For the CXA2133S this seems to work
-   There are no datasheets for it, but the CXA2061S seems to be
-   very close.
+sllib led1(LED_BUILTIN_RX);
+CircularBuffer<byte, 64> sBuf;
+
+/* This is a heavy handed solution for the problem with Micom reads.
+   Every few seconds the Micom reads the status from the Jungle chip
+   to make sure the TV isn't on fire or something. If those tests fail
+   it shuts off the cannon and turns off the TV. So instead of reading
+   this status from the jungle and sending (that takes forever) we will
+   just send the status and hope the TV isn't actually on fire.
 */
-#define REG_RGB (0xA)
-#define REG_INIT (0x9)
+volatile byte mRCount = 0;
+byte dataInit[] = {0x00, 0x85};
+byte dataOK[] = {0x40, 0x85};
 
-/* Easier than writing 11111110 all the time */
-#define MASK (0xfe)
-
-/* Theoretically this will be enough (famous last words) */
-#define BUFFER_SIZE (64)
-
-#define D_EVENT 0
-#define S_EVENT 1
-#define P_EVENT 2
-#define SR_EVENT 3
-
-typedef struct Event {
-  byte type;
-  byte data;
-} Event;
-
-volatile byte state = 0;
-
-RingBufCPP<Event, BUFFER_SIZE> buf;
-sllib led(LED_BUILTIN_RX);
-
-int failPtrn1[] = {1000, 200, 500, 200};
-int failPtrn2[] = {1000, 200, 500, 200, 500, 200};
-int failPtrn3[] = {1000, 200, 500, 200, 500, 200, 500, 200};
-
-long unsigned int start = millis();
-
-void handleCL();
-void handleDA();
+void slaveReceive(int n);
+void slaveRequest();
 
 void setup() {
-  Serial.begin(115200);
-  Serial.print("Sony Jungle I2C Bridge\n");
-  led.setBlinkSingle(1000);
+  Wire.begin(JUNGLE_ADDR);
+  Wire.onReceive(slaveReceive);
+  Wire.onRequest(slaveRequest);
 
-  DDRD = DDRD | B11111100;
-  DDRB = DDRB | B11111111;
-  attachInterrupt(digitalPinToInterrupt(3), handleCL, RISING);
-  attachInterrupt(digitalPinToInterrupt(2), handleDA, CHANGE);
+  /* We don't want the Pullups to be enabled. This seem to be the way to do it.
+   */
+  // digitalWrite(2, LOW);
+  // digitalWrite(3, LOW);
+
+  if (!i2c_init()) {
+    led1.setBlinkSingle(200);
+  }
+
+  // Put a heartbeat led to make things easier to see
+  led1.setBlinkSingle(1000);
+}
+
+/* Those two functions are ISRs so be fast and follow all
+   ISR tips and tricks
+*/
+void slaveReceive(int n) {
+  while (Wire.available()) {
+    byte c = Wire.read();
+    sBuf.push(c);
+  }
+}
+
+/* During my signal analysis of the i2c protocol that this TV uses, I verified
+   that usually takes around 6 requests for the IKR bit to stabilize and flip
+   (what finishes the startup self check). So we literally count how many times
+   we got asked for the register and then send the OK looking data back.
+   Ugly but it works.
+*/
+void slaveRequest() {
+  if (mRCount > 7) {
+    Wire.write(dataOK, 2);
+  } else {
+    Wire.write(dataInit, 2);
+    mRCount++;
+  }
 }
 
 void loop() {
-  if (buf.numElements() > 0) {
-    Serial.println(buf.numElements());
-    Event e;
-    while (buf.pull(&e)) {
-      switch (e.type) {
-      case S_EVENT:
-        Serial.println("Start event");
-        break;
+  byte bSize = sBuf.size(); // if there's data from the micom, this will be > 0
+  if (bSize > 0) {
+    byte data[bSize];
+    byte i = 0;
 
-      case P_EVENT:
-        Serial.println("Stop event");
-        break;
-
-      case D_EVENT:
-        Serial.println("Data event");
-        break;
-
-      default:
-        Serial.println("No event");
-        break;
-      }
-      Serial.print("Data: ");
-      Serial.println(e.data);
+    while (!sBuf.isEmpty()) {
+      byte d = sBuf.shift();
+      data[i] = d;
+      ++i;
     }
+
+    /* The Micom writes to the Jungle in groups of three bytes/registers at a
+       time, so the register that we want is actually on 0xA that is included
+       on the group starting on 0x9. We use a & to mask and change only the
+       last bit to 0 and enable the RGB SEL bit.
+       Also, theoretically using a SWITCH with ascending int cases makes
+       the MCU spend less cycles, so why the heck not.
+    */
+    switch (data[0]) {
+    case 0x9:
+      data[2] = (data[2] & 0xfe);
+      break;
+
+    /* In didn't see this being called directly, but just in case it happens
+       sometime, we also mask the RGB SEL bit if we receive any data for the 0XA
+       register
+    */
+    case 0xA:
+      data[1] = (data[1] & 0xfe);
+      break;
+
+    default:
+      break;
+    }
+
+    if (!i2c_start((JUNGLE_ADDR << 1) | I2C_WRITE)) {
+      led1.setBlinkSingle(500);
+      return;
+    }
+    for (byte j = 0; j < bSize; j++) {
+      i2c_write(data[j]);
+    }
+    i2c_stop();
   }
-  led.update();
-}
 
-void handleCL() {
-  byte portState = (PIND & B00000011);
-  Event e;
-  switch (portState) {
-  case DA_CL_HIGH:
-    e = {.type = D_EVENT, .data = 1};
-    buf.add(e);
-    return;
-    break;
-  case CL_HIGH:
-    e = {.type = D_EVENT, .data = 0};
-    buf.add(e);
-    return;
-    break;
-
-  default:
-    break;
-  }
-}
-
-void handleDA() {
-  byte portState = (PIND & B00000011);
-  Event e;
-  switch (portState) {
-  case CL_HIGH:
-    e = {.type = S_EVENT, .data = 0};
-    buf.add(e);
-    return;
-    break;
-  case DA_CL_HIGH:
-    e = {.type = P_EVENT, .data = 0};
-    buf.add(e);
-    return;
-    break;
-
-  default:
-    break;
-  }
+  led1.update();
 }

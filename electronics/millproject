@@ -1,0 +1,65 @@
+# files
+back=gerber/electronics-B_Cu.gbr
+outline=gerber/electronics-Edge_Cuts.gbr
+drill=gerber/electronics.drl
+
+# general
+metric=1
+metricoutput=1
+output-dir=cnc
+zsafe=5mm
+zchange=25mm
+vectorial=1
+tsp-2opt=1
+path-finding-limit=10
+
+# autoleveling
+al-back=1
+software=linuxcnc
+al-x=6mm
+al-y=6mm
+al-probefeed=500mm/min
+
+
+# drilling
+zdrill=-1.8mm
+drill-feed=140mm/min
+drill-speed=7000rpm
+drills-available=0.3,0.4,0.5,0.6,0.8,0.9,1,1.1,1.2
+
+# isolation milling
+#voronoi=1
+#offset=0.08
+zwork=-0.06mm
+milling-overlap=50%
+isolation-width=0.07
+
+# 0.2mm 20 degree V-Bit with fucking runout
+#mill-diameters=0.24116mm
+#mill-feed=100mm/min
+#mill-vertfeed=100mm/min
+#mill-speed=14000rpm
+
+# 0.1mm 60 degree V bit
+mill-diameters=0.16928
+mill-feed=100mm/min
+mill-vertfeed=80mm/min
+mill-speed=14000rpm
+
+# 0.1mm 30 degree V-Bit HQMaster
+#mill-diameters=0.12679mm
+#mill-feed=100mm/min
+#mill-speed=20000
+#mill-vertfeed=202mm/min
+
+# outline
+# Using 1.5mm burr mill
+cutter-diameter=1.5mm
+zcut=-1.8mm
+cut-feed=200mm/min
+cut-vertfeed=100mm/min
+cut-infeed=15mm
+cut-speed=21500rpm
+bridges=1
+bridgesnum=3
+

@@ -519,10 +519,10 @@ F 4 "478-10836-1-ND" H 8000 3050 50  0001 C CNN "Digikey PN"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:Rotary_Encoder_Switch #SW?
+L Device:Rotary_Encoder_Switch #SW2
 U 1 1 612F1AAA
 P 8000 6000
-F 0 "#SW?" H 8000 6367 50  0000 C CNN
+F 0 "#SW2" H 8000 6367 50  0000 C CNN
 F 1 "Rotary_Encoder_Switch" H 8000 6276 50  0000 C CNN
 F 2 "" H 7850 6160 50  0001 C CNN
 F 3 "~" H 8000 6260 50  0001 C CNN

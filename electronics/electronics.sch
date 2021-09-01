@@ -39,17 +39,15 @@ RESET
 Text GLabel 3150 2250 2    50   Input ~ 0
 VCC
 Text GLabel 1750 2950 0    50   Input ~ 0
-SCL2
+SCL2+
 Text GLabel 1750 3050 0    50   Input ~ 0
-SDA2
+SDA2-
 Text GLabel 1750 2350 0    50   Input ~ 0
 SDA1
 Text GLabel 1750 2450 0    50   Input ~ 0
 SCL1
 NoConn ~ 1750 2550
 NoConn ~ 1750 2650
-NoConn ~ 1750 2750
-NoConn ~ 1750 2850
 NoConn ~ 3150 2350
 NoConn ~ 3150 2450
 NoConn ~ 3150 2550
@@ -57,7 +55,6 @@ NoConn ~ 3150 2650
 NoConn ~ 3150 2750
 NoConn ~ 3150 2850
 NoConn ~ 3150 2950
-NoConn ~ 3150 3050
 $Comp
 L Connector_Generic:Conn_01x05 J7
 U 1 1 61137DFF
@@ -96,42 +93,10 @@ U 1 1 6113BD6C
 P 7000 2300
 F 0 "R5" H 7068 2346 50  0000 L CNN
 F 1 "75" H 7068 2255 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" H 7000 2300 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 7000 2300 50  0001 C CNN
 F 3 "~" H 7000 2300 50  0001 C CNN
+F 4 "RMCF0805FT75R0CT-ND " H 7000 2300 50  0001 C CNN "Digikey PN"
 	1    7000 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_Small_US R6
-U 1 1 6113D219
-P 7350 2300
-F 0 "R6" H 7418 2346 50  0000 L CNN
-F 1 "75" H 7418 2255 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" H 7350 2300 50  0001 C CNN
-F 3 "~" H 7350 2300 50  0001 C CNN
-	1    7350 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_Small_US R7
-U 1 1 6113D54B
-P 7700 2300
-F 0 "R7" H 7768 2346 50  0000 L CNN
-F 1 "75" H 7768 2255 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" H 7700 2300 50  0001 C CNN
-F 3 "~" H 7700 2300 50  0001 C CNN
-	1    7700 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_Small_US R8
-U 1 1 6113D855
-P 8000 2300
-F 0 "R8" H 8068 2346 50  0000 L CNN
-F 1 "75" H 8068 2255 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" H 8000 2300 50  0001 C CNN
-F 3 "~" H 8000 2300 50  0001 C CNN
-	1    8000 2300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -170,31 +135,10 @@ U 1 1 611420D7
 P 7000 3050
 F 0 "C1" H 7092 3096 50  0000 L CNN
 F 1 "0u1" H 7092 3005 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm" H 7000 3050 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 7000 3050 50  0001 C CNN
 F 3 "~" H 7000 3050 50  0001 C CNN
+F 4 "478-10836-1-ND" H 7000 3050 50  0001 C CNN "Digikey PN"
 	1    7000 3050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C_Small C2
-U 1 1 6114371A
-P 7350 3050
-F 0 "C2" H 7442 3096 50  0000 L CNN
-F 1 "0u1" H 7442 3005 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm" H 7350 3050 50  0001 C CNN
-F 3 "~" H 7350 3050 50  0001 C CNN
-	1    7350 3050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C_Small C3
-U 1 1 61143B2D
-P 7700 3050
-F 0 "C3" H 7792 3096 50  0000 L CNN
-F 1 "0u1" H 7792 3005 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm" H 7700 3050 50  0001 C CNN
-F 3 "~" H 7700 3050 50  0001 C CNN
-	1    7700 3050
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -240,17 +184,6 @@ Wire Wire Line
 Connection ~ 7350 2100
 Wire Wire Line
 	7350 2100 7700 2100
-$Comp
-L Device:C_Small C4
-U 1 1 61143F72
-P 8000 3050
-F 0 "C4" H 8092 3096 50  0000 L CNN
-F 1 "0u1" H 8092 3005 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm" H 8000 3050 50  0001 C CNN
-F 3 "~" H 8000 3050 50  0001 C CNN
-	1    8000 3050
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	8000 2400 8000 2900
 Wire Wire Line
@@ -330,20 +263,10 @@ U 1 1 61172944
 P 4100 3400
 F 0 "R1" H 4168 3446 50  0000 L CNN
 F 1 "4k7" H 4168 3355 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" H 4100 3400 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 4100 3400 50  0001 C CNN
 F 3 "~" H 4100 3400 50  0001 C CNN
+F 4 "RMCF0805FT4K70CT-ND " H 4100 3400 50  0001 C CNN "Digikey PN"
 	1    4100 3400
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_Small_US R2
-U 1 1 611740AA
-P 4450 3400
-F 0 "R2" H 4518 3446 50  0000 L CNN
-F 1 "4k7" H 4518 3355 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" H 4450 3400 50  0001 C CNN
-F 3 "~" H 4450 3400 50  0001 C CNN
-	1    4450 3400
 	1    0    0    -1  
 $EndComp
 Text GLabel 3800 3200 0    50   Input ~ 0
@@ -371,20 +294,10 @@ U 1 1 61177555
 P 4800 3650
 F 0 "R3" V 4595 3650 50  0000 C CNN
 F 1 "100" V 4686 3650 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" H 4800 3650 50  0001 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 4800 3650 50  0001 C CNN
 F 3 "~" H 4800 3650 50  0001 C CNN
+F 4 "RMCF0805FT100RCT-ND " V 4800 3650 50  0001 C CNN "Digikey PN"
 	1    4800 3650
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:R_Small_US R4
-U 1 1 61177C29
-P 4800 3750
-F 0 "R4" V 4913 3750 50  0000 C CNN
-F 1 "100" V 5004 3750 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" H 4800 3750 50  0001 C CNN
-F 3 "~" H 4800 3750 50  0001 C CNN
-	1    4800 3750
 	0    1    1    0   
 $EndComp
 Wire Wire Line
@@ -506,4 +419,140 @@ Wire Notes Line
 	5600 5600 2950 5600
 Text Notes 2950 5600 0    50   ~ 0
 EXTERNAL MOD ENABLE
+$Comp
+L Device:R_Small_US R2
+U 1 1 6128C924
+P 4450 3400
+F 0 "R2" H 4518 3446 50  0000 L CNN
+F 1 "4k7" H 4518 3355 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 4450 3400 50  0001 C CNN
+F 3 "~" H 4450 3400 50  0001 C CNN
+F 4 "RMCF0805FT4K70CT-ND " H 4450 3400 50  0001 C CNN "Digikey PN"
+	1    4450 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Small_US R4
+U 1 1 6128CD81
+P 4800 3750
+F 0 "R4" V 4913 3750 50  0000 C CNN
+F 1 "100" V 5004 3750 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 4800 3750 50  0001 C CNN
+F 3 "~" H 4800 3750 50  0001 C CNN
+F 4 "RMCF0805FT100RCT-ND " V 4800 3750 50  0001 C CNN "Digikey PN"
+	1    4800 3750
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R_Small_US R6
+U 1 1 6128D0EC
+P 7350 2300
+F 0 "R6" H 7418 2346 50  0000 L CNN
+F 1 "75" H 7418 2255 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 7350 2300 50  0001 C CNN
+F 3 "~" H 7350 2300 50  0001 C CNN
+F 4 "" H 7350 2300 50  0001 C CNN "Digkey PN"
+F 5 "RMCF0805FT75R0CT-ND " H 7350 2300 50  0001 C CNN "Digikey PN"
+	1    7350 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Small_US R7
+U 1 1 6128F8BC
+P 7700 2300
+F 0 "R7" H 7768 2346 50  0000 L CNN
+F 1 "75" H 7768 2255 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 7700 2300 50  0001 C CNN
+F 3 "~" H 7700 2300 50  0001 C CNN
+F 4 "" H 7700 2300 50  0001 C CNN "Digkey PN"
+F 5 "RMCF0805FT75R0CT-ND " H 7700 2300 50  0001 C CNN "Digikey PN"
+	1    7700 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Small_US R8
+U 1 1 6128FBDD
+P 8000 2300
+F 0 "R8" H 8068 2346 50  0000 L CNN
+F 1 "75" H 8068 2255 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" H 8000 2300 50  0001 C CNN
+F 3 "~" H 8000 2300 50  0001 C CNN
+F 4 "" H 8000 2300 50  0001 C CNN "Digkey PN"
+F 5 "RMCF0805FT75R0CT-ND " H 8000 2300 50  0001 C CNN "Digikey PN"
+	1    8000 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C2
+U 1 1 61292639
+P 7350 3050
+F 0 "C2" H 7442 3096 50  0000 L CNN
+F 1 "0u1" H 7442 3005 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 7350 3050 50  0001 C CNN
+F 3 "~" H 7350 3050 50  0001 C CNN
+F 4 "478-10836-1-ND" H 7350 3050 50  0001 C CNN "Digikey PN"
+	1    7350 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C3
+U 1 1 61292960
+P 7700 3050
+F 0 "C3" H 7792 3096 50  0000 L CNN
+F 1 "0u1" H 7792 3005 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 7700 3050 50  0001 C CNN
+F 3 "~" H 7700 3050 50  0001 C CNN
+F 4 "478-10836-1-ND" H 7700 3050 50  0001 C CNN "Digikey PN"
+	1    7700 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C4
+U 1 1 61292C9D
+P 8000 3050
+F 0 "C4" H 8092 3096 50  0000 L CNN
+F 1 "0u1" H 8092 3005 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder" H 8000 3050 50  0001 C CNN
+F 3 "~" H 8000 3050 50  0001 C CNN
+F 4 "478-10836-1-ND" H 8000 3050 50  0001 C CNN "Digikey PN"
+	1    8000 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Rotary_Encoder_Switch #SW?
+U 1 1 612F1AAA
+P 8000 6000
+F 0 "#SW?" H 8000 6367 50  0000 C CNN
+F 1 "Rotary_Encoder_Switch" H 8000 6276 50  0000 C CNN
+F 2 "" H 7850 6160 50  0001 C CNN
+F 3 "~" H 8000 6260 50  0001 C CNN
+	1    8000 6000
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	9350 6300 9350 5500
+Wire Notes Line
+	9350 5500 6700 5500
+Wire Notes Line
+	6700 5500 6700 6300
+Wire Notes Line
+	6700 6300 9350 6300
+Text Notes 6650 5500 0    50   ~ 0
+EXTERNAL ENCODER
+Text GLabel 7700 6000 0    50   Input ~ 0
+GND
+Text GLabel 8300 6100 2    50   Input ~ 0
+GND
+Text GLabel 7700 5900 0    50   Input ~ 0
+ENC_A
+Text GLabel 7700 6100 0    50   Input ~ 0
+ENC_B
+Text GLabel 8300 5900 2    50   Input ~ 0
+ENC_SW
+Text GLabel 3150 3050 2    50   Input ~ 0
+ENC_SW
+Text GLabel 1750 2750 0    50   Input ~ 0
+ENC_A
+Text GLabel 1750 2850 0    50   Input ~ 0
+ENC_B
 $EndSCHEMATC

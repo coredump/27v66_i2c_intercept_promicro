@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Encoder.h>
 #include <Wire.h>
 #include <singleLEDLibrary.h>
 
@@ -22,6 +23,7 @@
 
 sllib led1(LED_BUILTIN_RX);
 CircularBuffer<byte, 64> sBuf;
+Encoder dial(6, 7);
 
 /* This is a heavy handed solution for the problem with Micom reads.
    Every few seconds the Micom reads the status from the Jungle chip
@@ -33,6 +35,9 @@ CircularBuffer<byte, 64> sBuf;
 volatile byte mRCount = 0;
 byte dataInit[] = {0x00, 0x85};
 byte dataOK[] = {0x40, 0x85};
+long oldPos = -999;
+unsigned long debounceStart = millis();
+int defaultHPos = -999;
 
 void slaveReceive(int n);
 void slaveRequest();
@@ -41,6 +46,9 @@ void setup() {
   Wire.begin(JUNGLE_ADDR);
   Wire.onReceive(slaveReceive);
   Wire.onRequest(slaveRequest);
+
+  // Zero the encoder
+  dial.write(0);
 
   /* We don't want the Pullups to be enabled. This seem to be the way to do it.
    */
@@ -51,8 +59,14 @@ void setup() {
     led1.setBlinkSingle(200);
   }
 
+  // Button from the encoder
+  pinMode(10, INPUT_PULLUP);
+
   // Put a heartbeat led to make things easier to see
   led1.setBlinkSingle(1000);
+#ifdef DEBUG
+  Serial.begin(115200);
+#endif
 }
 
 /* Those two functions are ISRs so be fast and follow all
@@ -81,6 +95,25 @@ void slaveRequest() {
 }
 
 void loop() {
+  // Encoder stuff
+  long newPos = dial.read() / 4;
+  if (newPos != oldPos) {
+#ifdef DEBUG
+    Serial.print("Enc pos: ");
+    Serial.println(newPos);
+#endif
+    oldPos = newPos;
+  }
+
+  if (digitalRead(10) == LOW) {
+    if (millis() - debounceStart > 500) {
+#ifdef DEBUG
+      Serial.println("Click");
+#endif
+      debounceStart = millis();
+    }
+  }
+
   byte bSize = sBuf.size(); // if there's data from the micom, this will be > 0
   if (bSize > 0) {
     byte data[bSize];
@@ -90,6 +123,9 @@ void loop() {
       byte d = sBuf.shift();
       data[i] = d;
       ++i;
+#ifdef DEBUG
+      Serial.println(d);
+#endif
     }
 
     /* The Micom writes to the Jungle in groups of three bytes/registers at a
@@ -100,17 +136,42 @@ void loop() {
        the MCU spend less cycles, so why the heck not.
     */
     switch (data[0]) {
-    case 0x9:
+    case 0x9: {
       data[2] = (data[2] & 0xfe);
-      break;
+    } break;
 
     /* In didn't see this being called directly, but just in case it happens
        sometime, we also mask the RGB SEL bit if we receive any data for the 0XA
        register
     */
-    case 0xA:
+    case 0xA: {
       data[1] = (data[1] & 0xfe);
-      break;
+    } break;
+
+    /* luckily HPOS is one of the 'group headers so we don't need to make 
+       multiple case statements like the RGB SEL situation.
+       HPOS is a 6 bit value with the two right bits being ignore, so we
+       shift the value by 2 to get the right bits
+    */
+    case 0x12: {
+      defaultHPos = data[1] >> 2;
+      int hPos = defaultHPos + (newPos);
+#ifdef DEBUG
+      Serial.print("newPos: ");
+      Serial.println(newPos);
+      Serial.print("oldPos: ");
+      Serial.println(oldPos);
+#endif
+      if (hPos > 63) {
+        hPos = 63;
+        dial.write((63 - defaultHPos) * 4);
+      }
+      if (hPos < 0) {
+        hPos = 0;
+        dial.write((0 - defaultHPos) * 4);
+      }
+      data[1] = (hPos << 2);
+    } break;
 
     default:
       break;
